@@ -99,6 +99,9 @@ String OPEN_WEATHER_MAP_LANGUAGE = "de";
 const uint8_t MAX_FORECASTS = 4;
 
 const boolean IS_METRIC = true;
+const boolean IS_24HOUR = true;
+enum dateOrders {DMY, MDY, YMD};
+const dateOrders dateOrder = DMY;
 
 // Adjust according to your language
 const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
@@ -261,17 +264,24 @@ void drawDateTime(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, in
   struct tm* timeInfo;
   timeInfo = localtime(&now);
   char buff[16];
-
-
+  
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->setFont(ArialMT_Plain_10);
   String date = WDAY_NAMES[timeInfo->tm_wday];
 
-  sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mday, timeInfo->tm_mon+1, timeInfo->tm_year + 1900);
+  if(dateOrder == DMY) sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mday, timeInfo->tm_mon+1, timeInfo->tm_year + 1900);
+  else if (dateOrder == MDY) sprintf_P(buff, PSTR("%s, %d/%d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mon+1, timeInfo->tm_mday, timeInfo->tm_year + 1900);
+  else if (dateOrder == YMD) sprintf_P(buff, PSTR("%s, %04d/%02d/%02d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_year + 1900, timeInfo->tm_mday, timeInfo->tm_mon+1);
   display->drawString(64 + x, 5 + y, String(buff));
   display->setFont(ArialMT_Plain_24);
 
-  sprintf_P(buff, PSTR("%02d:%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+  if(IS_24HOUR) sprintf_P(buff, PSTR("%02d:%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
+  else {
+	uint8_t hour;
+	hour = timeInfo->tm_hour % 12;
+	if(hour == 0) hour = 12;
+	sprintf_P(buff, PSTR("%d:%02d:%02d"), hour, timeInfo->tm_min, timeInfo->tm_sec);
+  }
   display->drawString(64 + x, 15 + y, String(buff));
   display->setTextAlignment(TEXT_ALIGN_LEFT);
 }
@@ -318,7 +328,14 @@ void drawHeaderOverlay(OLEDDisplay *display, OLEDDisplayUiState* state) {
   struct tm* timeInfo;
   timeInfo = localtime(&now);
   char buff[14];
-  sprintf_P(buff, PSTR("%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min);
+  
+  if(IS_24HOUR) sprintf_P(buff, PSTR("%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min);
+  else {
+	uint8_t hour;
+	hour = timeInfo->tm_hour % 12;
+	if(hour == 0) hour = 12;
+	sprintf_P(buff, PSTR("%d:%02d"), hour, timeInfo->tm_min);
+  }
 
   display->setColor(WHITE);
   display->setFont(ArialMT_Plain_10);
