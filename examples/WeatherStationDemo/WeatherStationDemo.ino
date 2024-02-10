@@ -55,8 +55,10 @@ See more at https://thingpulse.com
 const char* WIFI_SSID = "yourssid";
 const char* WIFI_PWD = "yourpassw0rd";
 
-#define TZ              2       // (utc+) TZ in hours
-#define DST_MN          60      // use 60mn for summer time in some countries
+// Timezone
+// Enter a POSIX timezone string.  A current list can be found here:
+// https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
+#define TZ "CET-1CEST,M3.5.0,M10.5.0/3"
 
 // Setup
 const int UPDATE_INTERVAL_SECS = 20 * 60; // Update every 20 minutes
@@ -116,9 +118,6 @@ OpenWeatherMapCurrent currentWeatherClient;
 OpenWeatherMapForecastData forecasts[MAX_FORECASTS];
 OpenWeatherMapForecast forecastClient;
 
-#define TZ_MN           ((TZ)*60)
-#define TZ_SEC          ((TZ)*3600)
-#define DST_SEC         ((DST_MN)*60)
 time_t now;
 
 // flag changed in the ticker function every 10 minutes
@@ -179,7 +178,7 @@ void setup() {
     counter++;
   }
   // Get time from network time service
-  configTime(TZ_SEC, DST_SEC, "pool.ntp.org");
+  configTzTime(TZ, "pool.ntp.org");
 
   ui.setTargetFPS(30);
 
